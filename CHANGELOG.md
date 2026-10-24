@@ -3,6 +3,13 @@
 All notable changes are listed here. The release notes of each tag are generated from
 Conventional Commits by GoReleaser.
 
+## [0.1.2] - 2026-10-24
+
+### Fixed
+- `install-hooks` registers the binary by absolute path, so hooks no longer fail with
+  `speckit-board: not found` when `~/go/bin` is only added to `PATH` in a shell rc file.
+  Running it again repairs entries written by older versions.
+
 ## [0.1.1] - 2026-10-24
 
 ### Fixed

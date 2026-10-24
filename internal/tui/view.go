@@ -44,7 +44,8 @@ enter           on a remediation task, send /speckit-implement <id>
 q               quit`
 
 func cell(text string, w int, st lipgloss.Style) string {
-	return st.Width(w).MaxWidth(w).Render(ansi.Truncate(text, w, "…"))
+	t := ansi.Truncate(text, w, "…")
+	return st.Render(t + strings.Repeat(" ", w-ansi.StringWidth(t)))
 }
 
 func (m *Model) View() string {
@@ -140,7 +141,7 @@ func columnCards(c spec.Column, w, rows, sel int) []string {
 	for r := range out {
 		out[r] = cell("", w, lipgloss.NewStyle())
 		if r >= visible {
-			break
+			continue
 		}
 		card := c.Cards[start+r]
 		st := lipgloss.NewStyle()

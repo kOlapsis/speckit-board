@@ -301,3 +301,25 @@ func TestBeforeFirstResize(t *testing.T) {
 		t.Error("view before size must not be empty")
 	}
 }
+
+func TestColumnsStayAligned(t *testing.T) {
+	e := setup(t)
+	write(t, filepath.Join(e.root, "specs/003-auth/tasks.md"),
+		"## Phase 1\n- [x] T001 first\n- [x] T002 second\n- [x] T003 third\n- [ ] T004 fourth\n")
+	e.m.Update(ReloadMsg{})
+	lines := strings.Split(e.m.View(), "\n")
+	for i, line := range lines {
+		if !strings.Contains(line, "Blocked (") {
+			continue
+		}
+		want := lipgloss.Width(line[:strings.Index(line, "Done (")])
+		for off, id := range []string{"T001", "T002", "T003"} {
+			row := lines[i+1+off]
+			if got := lipgloss.Width(row[:strings.Index(row, id)]); got != want {
+				t.Errorf("%s starts at %d, Done column at %d", id, got, want)
+			}
+		}
+		return
+	}
+	t.Fatal("no header line")
+}

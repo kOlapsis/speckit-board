@@ -1,0 +1,19 @@
+{
+  "session_id": "abc123",
+  "transcript_path": "/home/benjamin/.claude/projects/-work-app/abc123.jsonl",
+  "cwd": "ROOT",
+  "permission_mode": "default",
+  "hook_event_name": "PostToolUse",
+  "tool_name": "Edit",
+  "tool_input": {
+    "file_path": "ROOT/internal/main.go",
+    "old_string": "- [ ] T002 Add login handler",
+    "new_string": "- [~] T002 Add login handler",
+    "replace_all": false
+  },
+  "tool_response": {
+    "filePath": "ROOT/internal/main.go",
+    "success": true
+  },
+  "tool_use_id": "toolu_01ABC"
+}

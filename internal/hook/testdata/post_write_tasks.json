@@ -1,0 +1,18 @@
+{
+  "session_id": "abc123",
+  "transcript_path": "/home/benjamin/.claude/projects/-work-app/abc123.jsonl",
+  "cwd": "ROOT",
+  "permission_mode": "default",
+  "hook_event_name": "PostToolUse",
+  "tool_name": "Write",
+  "tool_input": {
+    "file_path": "ROOT/specs/003-auth/tasks.md",
+    "content": "## Phase 1\n- [x] T001 a\n- [~] T002 Add login handler\n"
+  },
+  "tool_response": {
+    "type": "update",
+    "filePath": "ROOT/specs/003-auth/tasks.md",
+    "content": "## Phase 1\n- [x] T001 a\n- [~] T002 Add login handler\n"
+  },
+  "tool_use_id": "toolu_01DEF"
+}

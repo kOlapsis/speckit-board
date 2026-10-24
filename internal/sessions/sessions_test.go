@@ -84,3 +84,38 @@ func TestFirstWaiting(t *testing.T) {
 		t.Errorf("%+v", s)
 	}
 }
+
+func TestWriteRoundTrip(t *testing.T) {
+	dir := filepath.Join(t.TempDir(), "nested", "sessions")
+	want := Session{ID: "s1", Cwd: "/work/app", State: StateWaiting, Message: "hi", Pane: "%3", UpdatedAt: at(10)}
+	if err := Write(dir, want); err != nil {
+		t.Fatal(err)
+	}
+	got := List(dir)
+	if len(got) != 1 || got[0] != want {
+		t.Errorf("%+v", got)
+	}
+	entries, _ := os.ReadDir(dir)
+	if len(entries) != 1 {
+		t.Errorf("temporary files left behind: %v", entries)
+	}
+}
+
+func TestValidID(t *testing.T) {
+	for id, ok := range map[string]bool{"abc-123_X.y": true, "": false, "..": false, "a/b": false, "../x": false, ".": false} {
+		if ValidID(id) != ok {
+			t.Errorf("%q: want %v", id, ok)
+		}
+	}
+}
+
+func TestGet(t *testing.T) {
+	dir := t.TempDir()
+	if _, ok := Get(dir, "s1"); ok {
+		t.Error("missing session found")
+	}
+	_ = Write(dir, Session{ID: "s1", State: StateDone})
+	if s, ok := Get(dir, "s1"); !ok || s.State != StateDone {
+		t.Errorf("%+v", s)
+	}
+}

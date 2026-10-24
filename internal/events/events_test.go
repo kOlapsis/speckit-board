@@ -51,3 +51,25 @@ func TestStampsFor(t *testing.T) {
 		t.Errorf("%+v", got)
 	}
 }
+
+func TestAppendAndLastStates(t *testing.T) {
+	root := t.TempDir()
+	at := time.Date(2026, 10, 24, 9, 0, 0, 0, time.UTC)
+	for _, e := range []Event{
+		{TS: at, Feature: "003-auth", Task: "T001", From: "todo", To: "doing"},
+		{TS: at.Add(time.Hour), Feature: "003-auth", Task: "T001", From: "doing", To: "done"},
+		{TS: at, Feature: "004-other", Task: "T001", From: "todo", To: "doing"},
+	} {
+		if err := Append(root, e); err != nil {
+			t.Fatal(err)
+		}
+	}
+	evs := Read(root)
+	if len(evs) != 3 {
+		t.Fatalf("%+v", evs)
+	}
+	got := LastStates(evs, "003-auth")
+	if len(got) != 1 || got["T001"] != "done" {
+		t.Errorf("%v", got)
+	}
+}

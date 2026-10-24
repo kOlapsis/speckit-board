@@ -27,3 +27,15 @@ Choices made while building v0.1.0 where the brief left room.
   columns use the arrow keys or `h` and `l`, lanes use `tab`.
 - **install-hooks default.** `--project` is the default scope. The registered command is
   `speckit-board hook`, which assumes the binary is on `PATH`.
+- **Dependency pins.** `go.mod` stays at `go 1.23.0`. `golang.org/x/term`, `golang.org/x/sys` and
+  the Charm modules are pinned to the last versions that build with Go 1.23, because the newest
+  ones require Go 1.24 or 1.26. Dependabot proposes bumps, and a bump must keep CI green on 1.23.
+- **Statusline working directory.** `speckit-board status` reads no stdin and uses the current
+  directory (or its optional path argument), which is the project directory when Claude Code
+  runs the statusline command.
+- **Hooks registered.** `install-hooks` registers Notification, Stop and PostToolUse
+  (matcher `Edit|Write|MultiEdit`). SubagentStop is not registered because the handler ignores it.
+- **settings.json rewrite.** Existing hooks and unrelated keys are preserved. Keys are written
+  back in alphabetical order, and the file is left untouched when the hooks are already present.
+- **Non-terminal start.** Without a terminal the board refuses to start and points to `status`
+  and `--html`.

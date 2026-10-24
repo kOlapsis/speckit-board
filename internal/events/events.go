@@ -59,3 +59,33 @@ func StampsFor(evs []Event, feature, task string) Stamps {
 	}
 	return s
 }
+
+func Append(root string, e Event) error {
+	path := Path(root)
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return err
+	}
+	b, err := json.Marshal(e)
+	if err != nil {
+		return err
+	}
+	f, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
+	if err != nil {
+		return err
+	}
+	_, err = f.Write(append(b, '\n'))
+	if cerr := f.Close(); err == nil {
+		err = cerr
+	}
+	return err
+}
+
+func LastStates(evs []Event, feature string) map[string]string {
+	out := map[string]string{}
+	for _, e := range evs {
+		if e.Feature == feature {
+			out[e.Task] = e.To
+		}
+	}
+	return out
+}

@@ -2,8 +2,10 @@ package sessions
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -102,4 +104,54 @@ func FirstWaiting(all []Session) *Session {
 		}
 	}
 	return best
+}
+
+var idRe = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_.-]*$`)
+
+func ValidID(id string) bool {
+	return idRe.MatchString(id)
+}
+
+func Get(dir, id string) (Session, bool) {
+	if !ValidID(id) {
+		return Session{}, false
+	}
+	b, err := os.ReadFile(filepath.Join(dir, id+".json"))
+	if err != nil {
+		return Session{}, false
+	}
+	var s Session
+	return s, json.Unmarshal(b, &s) == nil
+}
+
+func Write(dir string, s Session) error {
+	if !ValidID(s.ID) {
+		return fmt.Errorf("invalid session id %q", s.ID)
+	}
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return err
+	}
+	b, err := json.Marshal(s)
+	if err != nil {
+		return err
+	}
+	return atomicWrite(filepath.Join(dir, s.ID+".json"), b)
+}
+
+func atomicWrite(path string, b []byte) error {
+	tmp, err := os.CreateTemp(filepath.Dir(path), ".tmp-*")
+	if err != nil {
+		return err
+	}
+	_, err = tmp.Write(b)
+	if cerr := tmp.Close(); err == nil {
+		err = cerr
+	}
+	if err == nil {
+		err = os.Rename(tmp.Name(), path)
+	}
+	if err != nil {
+		_ = os.Remove(tmp.Name())
+	}
+	return err
 }

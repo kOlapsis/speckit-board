@@ -177,3 +177,20 @@ func TestInstallHooksReportsBrokenSettings(t *testing.T) {
 		t.Error("broken settings must be reported")
 	}
 }
+
+func TestHTMLExport(t *testing.T) {
+	out := filepath.Join(t.TempDir(), "board.html")
+	if _, err := run(t, "--html", out, project(t)); err != nil {
+		t.Fatal(err)
+	}
+	b, err := os.ReadFile(out)
+	if err != nil || !strings.Contains(string(b), "T002") || !strings.Contains(string(b), "003-auth") {
+		t.Errorf("%v %q", err, b)
+	}
+}
+
+func TestHTMLExportBadPath(t *testing.T) {
+	if _, err := run(t, "--html", filepath.Join(t.TempDir(), "missing", "board.html"), project(t)); err == nil {
+		t.Error("an unwritable path must be reported")
+	}
+}

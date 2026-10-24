@@ -1,12 +1,16 @@
 package cli
 
 import (
+	"errors"
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
+	"golang.org/x/term"
 
 	"github.com/kOlapsis/speckit-board/internal/spec"
 	"github.com/kOlapsis/speckit-board/internal/status"
+	"github.com/kOlapsis/speckit-board/internal/tui"
 )
 
 type Info struct {
@@ -16,12 +20,24 @@ type Info struct {
 }
 
 func New(info Info) *cobra.Command {
+	var target string
 	root := &cobra.Command{
 		Use:           "speckit-board [project...]",
 		Short:         "Kanban board for SpecKit tasks",
 		SilenceUsage:  true,
 		SilenceErrors: true,
+		Args:          cobra.ArbitraryArgs,
+		RunE: func(_ *cobra.Command, args []string) error {
+			if !term.IsTerminal(int(os.Stdout.Fd())) {
+				return errors.New("the board needs a terminal; use the status command or --html instead")
+			}
+			if len(args) == 0 {
+				args = []string{"."}
+			}
+			return tui.Run(tui.Options{Roots: args, Target: target})
+		},
 	}
+	root.Flags().StringVar(&target, "target", "", "tmux pane that receives the actions, for example %3")
 	root.AddCommand(statusCmd(), versionCmd(info))
 	return root
 }

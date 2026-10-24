@@ -70,3 +70,9 @@ func TestVersion(t *testing.T) {
 		t.Errorf("%q %v", out, err)
 	}
 }
+
+func TestBoardNeedsATerminal(t *testing.T) {
+	if _, err := run(t, project(t)); err == nil || !strings.Contains(err.Error(), "terminal") {
+		t.Errorf("got %v", err)
+	}
+}

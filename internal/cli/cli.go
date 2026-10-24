@@ -129,7 +129,12 @@ func installHooksCmd() *cobra.Command {
 			case dryRun:
 				_, err = fmt.Fprintf(out, "%s\n(dry run, nothing written to %s)\n", res.Content, path)
 			default:
-				_, err = fmt.Fprintf(out, "added %s hooks to %s\n", strings.Join(res.Added, ", "), path)
+				if len(res.Added) > 0 {
+					_, err = fmt.Fprintf(out, "added %s hooks to %s\n", strings.Join(res.Added, ", "), path)
+				}
+				if err == nil && len(res.Updated) > 0 {
+					_, err = fmt.Fprintf(out, "updated %s hooks in %s to an absolute path\n", strings.Join(res.Updated, ", "), path)
+				}
 			}
 			return err
 		},

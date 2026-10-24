@@ -82,7 +82,9 @@ speckit-board install-hooks --user      # ~/.claude/settings.json
 ```
 
 It adds Notification, Stop and PostToolUse entries running `speckit-board hook`, keeps your existing hooks
-and can be run again safely. The binary must be on your `PATH`. The `hook` command always exits 0, so it
+and can be run again safely. The command is written with the absolute path of the binary found on your
+`PATH`, because Claude Code hooks do not see the `PATH` set in your shell rc files; running it again turns
+an older bare `speckit-board hook` entry into that absolute path. The `hook` command always exits 0, so it
 can never block Claude Code.
 
 The hooks write two things:

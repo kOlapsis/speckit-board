@@ -26,7 +26,9 @@ Choices made while building v0.1.0 where the brief left room.
 - **Navigation keys.** `j` is reserved for the jump action, so rows use the arrow keys only;
   columns use the arrow keys or `h` and `l`, lanes use `tab`.
 - **install-hooks default.** `--project` is the default scope. The registered command is
-  `speckit-board hook`, which assumes the binary is on `PATH`.
+  `speckit-board hook` with the absolute path found by `exec.LookPath`, because hooks run without
+  the `PATH` from the user's shell rc files. The bare command is kept when the binary is not on
+  `PATH` or its path contains whitespace.
 - **Dependency pins.** `go.mod` stays at `go 1.23.0`. `golang.org/x/term`, `golang.org/x/sys` and
   the Charm modules are pinned to the last versions that build with Go 1.23, because the newest
   ones require Go 1.24 or 1.26. Dependabot proposes bumps, and a bump must keep CI green on 1.23.

@@ -212,7 +212,19 @@ func commands(t *testing.T, m map[string]any, event string) []string {
 	return out
 }
 
+func fakeBinary(t *testing.T) string {
+	t.Helper()
+	bin := t.TempDir()
+	exe := filepath.Join(bin, "speckit-board")
+	if err := os.WriteFile(exe, []byte("#!/bin/sh\n"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("PATH", bin)
+	return exe + " hook"
+}
+
 func TestInstallCreatesSettings(t *testing.T) {
+	want := fakeBinary(t)
 	path := filepath.Join(t.TempDir(), ".claude", "settings.json")
 	res, err := Install(path, false)
 	if err != nil || !res.Changed {
@@ -220,7 +232,7 @@ func TestInstallCreatesSettings(t *testing.T) {
 	}
 	m := readJSON(t, path)
 	for _, ev := range []string{"Notification", "Stop", "PostToolUse"} {
-		if got := commands(t, m, ev); len(got) != 1 || got[0] != "speckit-board hook" {
+		if got := commands(t, m, ev); len(got) != 1 || got[0] != want {
 			t.Errorf("%s: %v", ev, got)
 		}
 	}
@@ -231,6 +243,7 @@ func TestInstallCreatesSettings(t *testing.T) {
 }
 
 func TestInstallKeepsExistingSettings(t *testing.T) {
+	t.Setenv("PATH", t.TempDir())
 	path := filepath.Join(t.TempDir(), "settings.json")
 	existing := `{
   "model": "opus",
@@ -271,7 +284,24 @@ func TestInstallIsIdempotent(t *testing.T) {
 	}
 }
 
+func TestInstallRewritesBareCommand(t *testing.T) {
+	want := fakeBinary(t)
+	path := filepath.Join(t.TempDir(), "settings.json")
+	body := `{"hooks":{"Stop":[{"hooks":[{"type":"command","command":"speckit-board hook"}]}]}}`
+	if err := os.WriteFile(path, []byte(body), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	res, err := Install(path, false)
+	if err != nil || len(res.Updated) != 1 || res.Updated[0] != "Stop" {
+		t.Fatalf("%+v %v", res, err)
+	}
+	if got := commands(t, readJSON(t, path), "Stop"); len(got) != 1 || got[0] != want {
+		t.Errorf("%v", got)
+	}
+}
+
 func TestInstallRecognisesAbsolutePath(t *testing.T) {
+	fakeBinary(t)
 	path := filepath.Join(t.TempDir(), "settings.json")
 	body := `{"hooks":{"Notification":[{"hooks":[{"type":"command","command":"/usr/local/bin/speckit-board hook"}]}]}}`
 	if err := os.WriteFile(path, []byte(body), 0o644); err != nil {

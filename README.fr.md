@@ -85,8 +85,10 @@ speckit-board install-hooks --user      # ~/.claude/settings.json
 ```
 
 La commande ajoute des entrées Notification, Stop et PostToolUse qui lancent `speckit-board hook`, garde vos
-hooks existants et peut être relancée sans risque. Le binaire doit être dans votre `PATH`. La commande `hook`
-sort toujours avec le code 0 : elle ne peut jamais bloquer Claude Code.
+hooks existants et peut être relancée sans risque. La commande est écrite avec le chemin absolu du binaire
+trouvé dans votre `PATH`, car les hooks de Claude Code ne voient pas le `PATH` défini dans vos fichiers rc
+du shell ; la relancer remplace une ancienne entrée `speckit-board hook` sans chemin par ce chemin absolu.
+La commande `hook` sort toujours avec le code 0 : elle ne peut jamais bloquer Claude Code.
 
 Les hooks écrivent deux choses :
 

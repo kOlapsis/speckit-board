@@ -4,10 +4,13 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 
+	"github.com/kOlapsis/speckit-board/internal/hook"
 	"github.com/kOlapsis/speckit-board/internal/spec"
 	"github.com/kOlapsis/speckit-board/internal/status"
 	"github.com/kOlapsis/speckit-board/internal/tui"
@@ -38,7 +41,7 @@ func New(info Info) *cobra.Command {
 		},
 	}
 	root.Flags().StringVar(&target, "target", "", "tmux pane that receives the actions, for example %3")
-	root.AddCommand(statusCmd(), versionCmd(info))
+	root.AddCommand(statusCmd(), versionCmd(info), hookCmd(), installHooksCmd())
 	return root
 }
 
@@ -80,4 +83,54 @@ func versionCmd(info Info) *cobra.Command {
 			return err
 		},
 	}
+}
+
+func hookCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "hook",
+		Short: "Handle a Claude Code hook event read from stdin",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			_ = hook.Handle(cmd.InOrStdin(), hook.DefaultEnv())
+			return nil
+		},
+	}
+}
+
+func installHooksCmd() *cobra.Command {
+	var user, project, dryRun bool
+	cmd := &cobra.Command{
+		Use:   "install-hooks",
+		Short: "Add the speckit-board hooks to a Claude Code settings.json",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			path := filepath.Join(".claude", "settings.json")
+			if user {
+				home, err := os.UserHomeDir()
+				if err != nil {
+					return err
+				}
+				path = filepath.Join(home, ".claude", "settings.json")
+			}
+			res, err := hook.Install(path, dryRun)
+			if err != nil {
+				return err
+			}
+			out := cmd.OutOrStdout()
+			switch {
+			case !res.Changed:
+				_, err = fmt.Fprintf(out, "hooks already installed in %s\n", path)
+			case dryRun:
+				_, err = fmt.Fprintf(out, "%s\n(dry run, nothing written to %s)\n", res.Content, path)
+			default:
+				_, err = fmt.Fprintf(out, "added %s hooks to %s\n", strings.Join(res.Added, ", "), path)
+			}
+			return err
+		},
+	}
+	cmd.Flags().BoolVar(&user, "user", false, "install in ~/.claude/settings.json")
+	cmd.Flags().BoolVar(&project, "project", false, "install in ./.claude/settings.json (default)")
+	cmd.Flags().BoolVar(&dryRun, "dry-run", false, "print the resulting settings without writing them")
+	cmd.MarkFlagsMutuallyExclusive("user", "project")
+	return cmd
 }

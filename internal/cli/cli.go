@@ -10,7 +10,9 @@ import (
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 
+	"github.com/kOlapsis/speckit-board/internal/export"
 	"github.com/kOlapsis/speckit-board/internal/hook"
+	"github.com/kOlapsis/speckit-board/internal/sessions"
 	"github.com/kOlapsis/speckit-board/internal/spec"
 	"github.com/kOlapsis/speckit-board/internal/status"
 	"github.com/kOlapsis/speckit-board/internal/tui"
@@ -23,7 +25,7 @@ type Info struct {
 }
 
 func New(info Info) *cobra.Command {
-	var target string
+	var target, htmlOut string
 	root := &cobra.Command{
 		Use:           "speckit-board [project...]",
 		Short:         "Kanban board for SpecKit tasks",
@@ -31,15 +33,19 @@ func New(info Info) *cobra.Command {
 		SilenceErrors: true,
 		Args:          cobra.ArbitraryArgs,
 		RunE: func(_ *cobra.Command, args []string) error {
-			if !term.IsTerminal(int(os.Stdout.Fd())) {
-				return errors.New("the board needs a terminal; use the status command or --html instead")
-			}
 			if len(args) == 0 {
 				args = []string{"."}
+			}
+			if htmlOut != "" {
+				return writeHTML(htmlOut, args)
+			}
+			if !term.IsTerminal(int(os.Stdout.Fd())) {
+				return errors.New("the board needs a terminal; use the status command or --html instead")
 			}
 			return tui.Run(tui.Options{Roots: args, Target: target})
 		},
 	}
+	root.Flags().StringVar(&htmlOut, "html", "", "write a self-contained HTML page to this file instead of opening the board")
 	root.Flags().StringVar(&target, "target", "", "tmux pane that receives the actions, for example %3")
 	root.AddCommand(statusCmd(), versionCmd(info), hookCmd(), installHooksCmd())
 	return root
@@ -133,4 +139,23 @@ func installHooksCmd() *cobra.Command {
 	cmd.Flags().BoolVar(&dryRun, "dry-run", false, "print the resulting settings without writing them")
 	cmd.MarkFlagsMutuallyExclusive("user", "project")
 	return cmd
+}
+
+func writeHTML(path string, roots []string) error {
+	all := sessions.List(sessions.Dir())
+	lanes := make([]export.Lane, len(roots))
+	for i, r := range roots {
+		p := spec.Load(r)
+		light, _ := sessions.Summarize(all, p.Root)
+		lanes[i] = export.Lane{Project: p, Light: light}
+	}
+	f, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	err = export.HTML(f, lanes)
+	if cerr := f.Close(); err == nil {
+		err = cerr
+	}
+	return err
 }

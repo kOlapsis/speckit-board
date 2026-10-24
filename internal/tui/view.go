@@ -19,10 +19,6 @@ const (
 )
 
 var (
-	titles = map[spec.ColumnID]string{
-		spec.Blocked: "Blocked", spec.Ready: "Ready", spec.InProgress: "In progress",
-		spec.Finished: "Done", spec.Remediation: "Remediation", spec.Verified: "Verified",
-	}
 	colors = map[spec.ColumnID]lipgloss.Color{
 		spec.Blocked: "245", spec.Ready: "75", spec.InProgress: "214",
 		spec.Finished: "42", spec.Remediation: "203", spec.Verified: "135",
@@ -115,7 +111,7 @@ func (m *Model) laneView(idx, rows int) []string {
 	cols := make([][]string, len(l.cols))
 	for ci, c := range l.cols {
 		st := lipgloss.NewStyle().Bold(true).Foreground(colors[c.ID])
-		headers[ci] = cell(fmt.Sprintf("%s (%d)", titles[c.ID], len(c.Cards)), colW, st)
+		headers[ci] = cell(fmt.Sprintf("%s (%d)", c.ID.Title(), len(c.Cards)), colW, st)
 		sel := -1
 		if idx == m.laneIdx && ci == m.colIdx {
 			sel = m.rowIdx

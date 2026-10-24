@@ -127,6 +127,16 @@ const (
 	Verified    ColumnID = "verified"
 )
 
+func (id ColumnID) Title() string {
+	switch id {
+	case InProgress:
+		return "In progress"
+	case "":
+		return ""
+	}
+	return strings.ToUpper(string(id[:1])) + string(id[1:])
+}
+
 type Card struct {
 	ID    string
 	Title string

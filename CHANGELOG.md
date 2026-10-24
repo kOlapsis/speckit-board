@@ -3,6 +3,11 @@
 All notable changes are listed here. The release notes of each tag are generated from
 Conventional Commits by GoReleaser.
 
+## [0.1.1] - 2026-10-24
+
+### Fixed
+- Board columns stayed misaligned below the first row when a column had no card.
+
 ## [0.1.0] - 2026-10-24
 
 ### Added

@@ -1,6 +1,7 @@
 package spec
 
 import (
+	"bytes"
 	"encoding/json"
 	"os"
 	"path/filepath"
@@ -26,17 +27,14 @@ func Load(root string) Project {
 		return p
 	}
 	dir := filepath.Join(root, "specs", p.Feature)
-	if f, err := os.Open(filepath.Join(dir, "tasks.md")); err == nil {
-		p.Tasks, p.HasTasks = ParseTasks(f), true
-		f.Close()
+	if b, err := os.ReadFile(filepath.Join(dir, "tasks.md")); err == nil {
+		p.Tasks, p.HasTasks = ParseTasks(bytes.NewReader(b)), true
 	}
-	if f, err := os.Open(filepath.Join(dir, "acceptance-tests.md")); err == nil {
-		p.Acceptance = ParseAcceptance(f)
-		f.Close()
+	if b, err := os.ReadFile(filepath.Join(dir, "acceptance-tests.md")); err == nil {
+		p.Acceptance = ParseAcceptance(bytes.NewReader(b))
 	}
-	if f, err := os.Open(filepath.Join(dir, "verification.md")); err == nil {
-		p.Verification = ParseVerification(f)
-		f.Close()
+	if b, err := os.ReadFile(filepath.Join(dir, "verification.md")); err == nil {
+		p.Verification = ParseVerification(bytes.NewReader(b))
 	}
 	return p
 }

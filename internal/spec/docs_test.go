@@ -1,6 +1,7 @@
 package spec
 
 import (
+	"bytes"
 	"os"
 	"reflect"
 	"strings"
@@ -9,12 +10,11 @@ import (
 
 func acceptance(t *testing.T, name string) Acceptance {
 	t.Helper()
-	f, err := os.Open("testdata/" + name)
+	b, err := os.ReadFile("testdata/" + name)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer f.Close()
-	return ParseAcceptance(f)
+	return ParseAcceptance(bytes.NewReader(b))
 }
 
 func TestParseAcceptance(t *testing.T) {
@@ -46,12 +46,11 @@ func TestParseAcceptanceEmpty(t *testing.T) {
 
 func verification(t *testing.T, name string) Verification {
 	t.Helper()
-	f, err := os.Open("testdata/" + name)
+	b, err := os.ReadFile("testdata/" + name)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer f.Close()
-	return ParseVerification(f)
+	return ParseVerification(bytes.NewReader(b))
 }
 
 func TestParseVerification(t *testing.T) {

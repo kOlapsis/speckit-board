@@ -1,6 +1,7 @@
 package spec
 
 import (
+	"bytes"
 	"errors"
 	"os"
 	"reflect"
@@ -10,12 +11,11 @@ import (
 
 func open(t *testing.T, name string) Tasks {
 	t.Helper()
-	f, err := os.Open("testdata/" + name)
+	b, err := os.ReadFile("testdata/" + name)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer f.Close()
-	return ParseTasks(f)
+	return ParseTasks(bytes.NewReader(b))
 }
 
 func byID(ts Tasks, id string) Task {
